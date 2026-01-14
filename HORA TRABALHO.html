@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relógio de Trabalho Interativo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+        
+        .panel {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .panel:hover {
+            transform: translateY(-5px);
+        }
+        
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            color: #60a5fa;
+            font-size: 1.5rem;
+        }
+        
+        .panel-title i {
+            font-size: 1.8rem;
+        }
+        
+        .clock-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .current-time {
+            font-size: 4.5rem;
+            font-weight: 700;
+            color: #38bdf8;
+            text-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .current-date {
+            font-size: 1.2rem;
+            color: #cbd5e1;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .time-progress {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .work-time-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .time-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .time-input-group label {
+            font-size: 1.1rem;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .time-input {
+            background: rgba(15, 23, 42, 0.7);
+            border: 2px solid #475569;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 1.3rem;
+            color: #f1f5f9;
+            transition: all 0.3s;
+        }
+        
+        .time-input:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+        }
+        
+        .time-display {
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 1.3rem;
+            color: #f1f5f9;
+            border: 2px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .time-display i {
+            color: #60a5fa;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .set-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+        
+        .reset-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #f1f5f9;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.7);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .working {
+            color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+        
+        .off-work {
+            color: #f87171;
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+        }
+        
+        .countdown-section {
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            margin-top: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .countdown-label {
+            font-size: 1.1rem;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+        }
+        
+        .countdown-timer {
+            font-size: 3.2rem;
+            font-weight: 700;
+            color: #38bdf8;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+            margin: 10px 0;
+        }
+        
+        .work-progress-container {
+            margin-top: 15px;
+        }
+        
+        .work-progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+        
+        .work-progress-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .work-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 5px;
+        }
+        
+        .footer {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding-top: 20px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .time-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(96, 165, 250, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #60a5fa;
+        }
+        
+        .time-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .time-info {
+            flex: 1;
+        }
+        
+        .time-label {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+        
+        .time-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+        
+        .work-duration {
+            color: #38bdf8;
+        }
+        
+        .highlight {
+            color: #38bdf8;
+            font-weight: bold;
+        }
+        
+        .warning {
+            color: #fbbf24;
+        }
+        
+        .danger {
+            color: #f87171;
+        }
+        
+        .countdown-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .countdown-btn {
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+        
+        .start-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .pause-btn {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        
+        .countdown-finished {
+            color: #10b981;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .holiday-notice {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #fbbf24;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Painel do Relógio Atual -->
+        <div class="panel clock-container">
+            <h2 class="panel-title">
+                <i class="fas fa-clock"></i>
+                Hora Atual
+            </h2>
+            <div class="current-time" id="current-time">00:00:00</div>
+            <div class="current-date" id="current-date">Carregando...</div>
+            <div class="time-progress">
+                <div class="progress-bar" id="second-progress"></div>
+            </div>
+            
+            <div class="countdown-section">
+                <div class="countdown-label">Tempo restante para saída:</div>
+                <div class="countdown-timer" id="countdown-timer">06:00:00</div>
+                
+                <div class="work-progress-container">
+                    <div class="work-progress-label">
+                        <span>Progresso da jornada:</span>
+                        <span id="work-progress-text">0%</span>
+                    </div>
+                    <div class="work-progress-bar">
+                        <div class="work-progress-fill" id="work-progress-fill"></div>
+                    </div>
+                </div>
+                
+                <div class="countdown-controls">
+                    <button class="countdown-btn start-btn" id="start-countdown">
+                        <i class="fas fa-play"></i>
+                        Iniciar
+                    </button>
+                    <button class="countdown-btn pause-btn" id="pause-countdown">
+                        <i class="fas fa-pause"></i>
+                        Pausar
+                    </button>
+                    <button class="countdown-btn reset-btn" id="reset-countdown">
+                        <i class="fas fa-redo"></i>
+                        Resetar
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Painel do Controle de Trabalho -->
+        <div class="panel">
+            <h2 class="panel-title">
+                <i class="fas fa-briefcase"></i>
+                Controle de Trabalho
+            </h2>
+            
+            <div class="work-time-container">
+                <div class="time-input-group">
+                    <label for="start-time">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Hora de Início
+                    </label>
+                    <input type="time" id="start-time" class="time-input" value="09:00">
+                </div>
+                
+                <div class="time-row">
+                    <div class="time-icon">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div class="time-info">
+                        <div class="time-label">Duração do Trabalho</div>
+                        <div class="time-value work-duration">6 horas</div>
+                    </div>
+                </div>
+                
+                <div class="time-row">
+                    <div class="time-icon">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </div>
+                    <div class="time-info">
+                        <div class="time-label">Hora de Saída</div>
+                        <div class="time-value" id="end-time">15:00</div>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="set-btn" id="set-now">
+                        <i class="fas fa-clock"></i>
+                        Usar Hora Atual
+                    </button>
+                    <button class="reset-btn" id="reset-btn">
+                        <i class="fas fa-redo"></i>
+                        Redefinir
+                    </button>
+                </div>
+                
+                <div class="status" id="status-message">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Defina seu horário de início</span>
+                </div>
+                
+                <div id="holiday-notice" class="holiday-notice" style="display: none;">
+                    <i class="fas fa-umbrella-beach"></i> Hoje é fim de semana - Sem expediente!
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Sistema de controle de trabalho - Calcula automaticamente a hora de saída (6 horas após o início)</p>
+            <p>Desenvolvido com HTML, CSS e JavaScript | Atualizado em tempo real</p>
+        </div>
+    </div>
+
+    <script>
+        // Elementos DOM
+        const currentTimeElement = document.getElementById('current-time');
+        const currentDateElement = document.getElementById('current-date');
+        const secondProgressElement = document.getElementById('second-progress');
+        const startTimeInput = document.getElementById('start-time');
+        const endTimeElement = document.getElementById('end-time');
+        const setNowButton = document.getElementById('set-now');
+        const resetButton = document.getElementById('reset-btn');
+        const statusMessage = document.getElementById('status-message');
+        const countdownTimer = document.getElementById('countdown-timer');
+        const workProgressFill = document.getElementById('work-progress-fill');
+        const workProgressText = document.getElementById('work-progress-text');
+        const startCountdownBtn = document.getElementById('start-countdown');
+        const pauseCountdownBtn = document.getElementById('pause-countdown');
+        const resetCountdownBtn = document.getElementById('reset-countdown');
+        const holidayNotice = document.getElementById('holiday-notice');
+        
+        // Variáveis
+        let workStartTime = null;
+        let workEndTime = null;
+        let countdownInterval = null;
+        let isCountdownRunning = false;
+        let totalWorkDuration = 6 * 60 * 60 * 1000; // 6 horas em milissegundos
+        
+        // Atualizar relógio em tempo real
+        function updateClock() {
+            const now = new Date();
+            
+            // Formatar hora atual
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            currentTimeElement.textContent = `${hours}:${minutes}:${seconds}`;
+            
+            // Atualizar barra de progresso dos segundos
+            secondProgressElement.style.width = `${(seconds / 60) * 100}%`;
+            
+            // Formatar data atual
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            currentDateElement.textContent = now.toLocaleDateString('pt-BR', options);
+            
+            // Verificar se é fim de semana
+            const dayOfWeek = now.getDay();
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                holidayNotice.style.display = 'block';
+            } else {
+                holidayNotice.style.display = 'none';
+            }
+            
+            // Verificar status do trabalho se o horário de início foi definido
+            if (workStartTime) {
+                updateWorkStatus(now);
+                updateCountdown(now);
+            }
+            
+            // Atualizar automaticamente a cada segundo
+            setTimeout(updateClock, 1000);
+        }
+        
+        // Calcular hora de saída com base no horário de início
+        function calculateEndTime(startTimeStr) {
+            if (!startTimeStr) return;
+            
+            // Converter string de hora para objeto Date
+            const [hours, minutes] = startTimeStr.split(':').map(Number);
+            const startDate = new Date();
+            startDate.setHours(hours, minutes, 0, 0);
+            
+            // Adicionar 6 horas
+            const endDate = new Date(startDate.getTime() + totalWorkDuration);
+            
+            // Formatar hora de saída
+            const endHours = String(endDate.getHours()).padStart(2, '0');
+            const endMinutes = String(endDate.getMinutes()).padStart(2, '0');
+            
+            workStartTime = startDate;
+            workEndTime = endDate;
+            
+            endTimeElement.textContent = `${endHours}:${endMinutes}`;
+            
+            // Resetar contador
+            resetCountdown();
+        }
+        
+        // Atualizar status do trabalho
+        function updateWorkStatus(now) {
+            if (!workStartTime || !workEndTime) return;
+            
+            const timeUntilStart = workStartTime - now;
+            const timeUntilEnd = workEndTime - now;
+            
+            // Remover classes anteriores
+            statusMessage.classList.remove('working', 'off-work');
+            
+            // Verificar status atual
+            if (now >= workStartTime && now <= workEndTime) {
+                // Durante o horário de trabalho
+                const elapsedMs = now - workStartTime;
+                const remainingMs = workEndTime - now;
+                const elapsedHours = Math.floor(elapsedMs / (1000 * 60 * 60));
+                const elapsedMinutes = Math.floor((elapsedMs % (1000 * 60 * 60)) / (1000 * 60));
+                const remainingHours = Math.floor(remainingMs / (1000 * 60 * 60));
+                const remainingMinutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+                
+                statusMessage.innerHTML = `
+                    <i class="fas fa-briefcase"></i>
+                    <span>Você está <span class="highlight">trabalhando</span> - Já se passaram ${elapsedHours}h${elapsedMinutes.toString().padStart(2, '0')}m - Faltam ${remainingHours}h${remainingMinutes.toString().padStart(2, '0')}m</span>
+                `;
+                statusMessage.classList.add('working');
+            } else if (now < workStartTime) {
+                // Antes do horário de trabalho
+                const hours = Math.floor(timeUntilStart / (1000 * 60 * 60));
+                const minutes = Math.floor((timeUntilStart % (1000 * 60 * 60)) / (1000 * 60));
+                
+                statusMessage.innerHTML = `
+                    <i class="fas fa-coffee"></i>
+                    <span>Você está <span class="highlight">fora do trabalho</span> - Início em ${hours}h${minutes.toString().padStart(2, '0')}m</span>
+                `;
+                statusMessage.classList.add('off-work');
+            } else {
+                // Após o horário de trabalho
+                statusMessage.innerHTML = `
+                    <i class="fas fa-home"></i>
+                    <span>Você está <span class="highlight">fora do trabalho</span> - Jornada concluída!</span>
+                `;
+                statusMessage.classList.add('off-work');
+            }
+        }
+        
+        // Atualizar contador de tempo restante
+        function updateCountdown(now) {
+            if (!workStartTime || !workEndTime) return;
+            
+            const remainingMs = workEndTime - now;
+            
+            if (remainingMs <= 0) {
+                // Tempo esgotado
+                countdownTimer.textContent = "00:00:00";
+                countdownTimer.classList.add('countdown-finished');
+                workProgressFill.style.width = '100%';
+                workProgressText.textContent = '100%';
+                
+                // Parar o contador
+                if (isCountdownRunning) {
+                    clearInterval(countdownInterval);
+                    isCountdownRunning = false;
+                    startCountdownBtn.innerHTML = '<i class="fas fa-play"></i> Reiniciar';
+                }
+                
+                return;
+            }
+            
+            // Calcular horas, minutos e segundos restantes
+            const totalSeconds = Math.floor(remainingMs / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            
+            // Atualizar display do contador
+            countdownTimer.textContent = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Atualizar barra de progresso
+            const elapsedMs = totalWorkDuration - remainingMs;
+            const progressPercent = Math.min((elapsedMs / totalWorkDuration) * 100, 100);
+            workProgressFill.style.width = `${progressPercent}%`;
+            workProgressText.textContent = `${Math.round(progressPercent)}%`;
+            
+            // Mudar cor conforme o tempo
+            countdownTimer.classList.remove('warning', 'danger', 'countdown-finished');
+            
+            if (hours === 0 && minutes < 30) {
+                countdownTimer.classList.add('danger');
+            } else if (hours === 0) {
+                countdownTimer.classList.add('warning');
+            }
+        }
+        
+        // Iniciar contador
+        function startCountdown() {
+            if (isCountdownRunning) return;
+            
+            isCountdownRunning = true;
+            startCountdownBtn.innerHTML = '<i class="fas fa-play"></i> Executando';
+            
+            // Atualizar imediatamente
+            const now = new Date();
+            updateCountdown(now);
+            
+            // Configurar intervalo
+            countdownInterval = setInterval(() => {
+                updateCountdown(new Date());
+            }, 1000);
+        }
+        
+        // Pausar contador
+        function pauseCountdown() {
+            if (!isCountdownRunning) return;
+            
+            isCountdownRunning = false;
+            clearInterval(countdownInterval);
+            startCountdownBtn.innerHTML = '<i class="fas fa-play"></i> Continuar';
+        }
+        
+        // Resetar contador
+        function resetCountdown() {
+            isCountdownRunning = false;
+            clearInterval(countdownInterval);
+            
+            countdownTimer.textContent = "06:00:00";
+            countdownTimer.classList.remove('warning', 'danger', 'countdown-finished');
+            workProgressFill.style.width = '0%';
+            workProgressText.textContent = '0%';
+            
+            startCountdownBtn.innerHTML = '<i class="fas fa-play"></i> Iniciar';
+            
+            // Recalcular com base no horário atual
+            const now = new Date();
+            if (workStartTime && workEndTime) {
+                updateCountdown(now);
+            }
+        }
+        
+        // Definir horário de início para a hora atual
+        function setStartTimeToNow() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const currentTime = `${hours}:${minutes}`;
+            
+            startTimeInput.value = currentTime;
+            calculateEndTime(currentTime);
+            updateWorkStatus(now);
+            
+            // Iniciar contador automaticamente
+            startCountdown();
+        }
+        
+        // Redefinir para o horário padrão (09:00)
+        function resetToDefault() {
+            startTimeInput.value = "09:00";
+            calculateEndTime("09:00");
+            
+            // Resetar status
+            statusMessage.innerHTML = `
+                <i class="fas fa-info-circle"></i>
+                <span>Defina seu horário de início</span>
+            `;
+            statusMessage.classList.remove('working', 'off-work');
+            
+            // Resetar contador
+            resetCountdown();
+        }
+        
+        // Inicializar
+        function init() {
+            // Calcular hora de saída inicial
+            calculateEndTime(startTimeInput.value);
+            
+            // Configurar eventos
+            startTimeInput.addEventListener('change', function() {
+                calculateEndTime(this.value);
+                updateWorkStatus(new Date());
+            });
+            
+            setNowButton.addEventListener('click', setStartTimeToNow);
+            resetButton.addEventListener('click', resetToDefault);
+            
+            startCountdownBtn.addEventListener('click', startCountdown);
+            pauseCountdownBtn.addEventListener('click', pauseCountdown);
+            resetCountdownBtn.addEventListener('click', resetCountdown);
+            
+            // Iniciar relógio
+            updateClock();
+            
+            // Iniciar contador automaticamente
+            startCountdown();
+        }
+        
+        // Iniciar aplicação quando a página carregar
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
